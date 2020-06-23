@@ -1,6 +1,6 @@
 ARG ROSDISTRO=melodic
 
-FROM ros:$ROSDISTRO-robot
+FROM ros:$ROSDISTRO-perception
 MAINTAINER Levi Armstrong
 
 ARG ROSDISTRO
@@ -13,6 +13,7 @@ RUN apt-get update \
     libgl1-mesa-dev \
     libxt-dev \
     libflann-dev \
+    libqhull-dev \
     git-all \
     tar \
     wget \
@@ -21,12 +22,13 @@ RUN apt-get update \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /vtk_build
-RUN git clone --branch v8.2.0 https://github.com/Kitware/VTK.git
-RUN cmake -DCMAKE_BUILD_TYPE=Release /vtk_build/VTK && \
+RUN if [ "$ROSDISTRO" = "kinetic" ] || [ "$ROSDISTRO" = "melodic" ] ; then git clone --branch v7.1.0 https://github.com/Kitware/VTK.git ; fi
+RUN if [ "$ROSDISTRO" = "kinetic" ] || [ "$ROSDISTRO" = "melodic" ] ; then \
+    cmake -DCMAKE_BUILD_TYPE=Release /vtk_build/VTK && \
     make -j8 && \
     make install && \
     cd .. && \
-    rm -rf /vtk_build
+    rm -rf /vtk_build ; fi
 
 WORKDIR /pcl_build
 RUN git clone --branch pcl-1.9.1 https://github.com/PointCloudLibrary/pcl.git
